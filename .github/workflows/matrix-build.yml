@@ -38,38 +38,36 @@ jobs:
       - name: Generate build matrix from config.toml
         id: generate_matrix
         run: |
-          # Install 'toml-cli' for parsing TOML
-          # Using --break-system-packages is often needed in GitHub Actions runners
-          # due to how Python environments are set up and user permissions.
-          pip install toml-cli --break-system-packages
+          # Install tomlkit if not already installed (it's usually a dependency of toml-cli)
+          pip install tomlkit --break-system-packages
 
-          # Initialize an empty array for matrix IDs
-          MATRIX_IDS_ARRAY=()
+          # Use a Python script to parse the TOML file and generate the matrix JSON
+          python -c "
+          import tomlkit
+          import json
 
-          # Use 'toml keys config.toml' to get all top-level sections
-          # Loop through each section and check if 'enabled' is true
-          for section in $(toml keys config.toml); do
-            # Safely check if 'enabled' key exists and is true for the current section
-            # toml get config.toml "$section.enabled" will return "true" or "false" (as string)
-            # if the key exists, or an error if it doesn't. We pipe errors to /dev/null
-            # and default to "false" if not found or if the command fails.
-            enabled=$(toml get config.toml "$section.enabled" 2>/dev/null || echo "false")
+          matrix_ids = []
+          try:
+              with open('config.toml', 'r') as f:
+                  config = tomlkit.parse(f.read())
 
-            if [ "$enabled" = "true" ]; then
-              MATRIX_IDS_ARRAY+=("{\"id\": \"$section\"}")
-            fi
-          done
+              for section_name, section_data in config.items():
+                  # Check if the section is a table (dictionary) and has an 'enabled' key
+                  if isinstance(section_data, tomlkit.toml_document.TOMLDocument) or isinstance(section_data, dict):
+                      enabled = section_data.get('enabled', False) # Default to False if 'enabled' key is missing
+                      if enabled:
+                          matrix_ids.append({'id': section_name})
 
-          # Join the array elements with commas to form a JSON array string
-          # Handle the case where MATRIX_IDS_ARRAY might be empty
-          if [ ${#MATRIX_IDS_ARRAY[@]} -gt 0 ]; then
-            MATRIX_JSON="[$(IFS=,; echo "${MATRIX_IDS_ARRAY[*]}")]"
-          else
-            MATRIX_JSON="[]"
-          fi
+          except Exception as e:
+              print(f'Error parsing config.toml: {e}')
+              # Exit with a non-zero code to fail the step if parsing fails
+              exit(1)
 
-          echo "Generated matrix JSON: $MATRIX_JSON"
-          echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
+          matrix_json = json.dumps(matrix_ids)
+          print(f'Generated matrix JSON: {matrix_json}')
+          # Set the output variable for the GitHub Actions step
+          print(f'matrix={matrix_json}' >> '$GITHUB_OUTPUT')
+          "
 
       - name: Generate release
         run: |
