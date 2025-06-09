@@ -69,7 +69,7 @@ jobs:
           - id: "Music"
           - id: "YouTube-anddea"
           - id: "Music-anddea"
-          - id: "GooglePhotos"
+          # - id: "GooglePhotos"
           - id: "Spotify"
           #   - id: "YouTube-Extended"
           #   - id: "Music-Extended"
