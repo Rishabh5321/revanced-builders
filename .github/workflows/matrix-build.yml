@@ -218,12 +218,7 @@ jobs:
     steps:
       - name: Mark release non-draft
         run: |
-          if [[ "${{ github.ref_name }}" == 'main' ]]; then
-            echo "Marking release as non-draft and latest for main branch."
-            gh release edit ${{ needs.generate-release.outputs.version }} --draft=false --latest --repo ${{ github.repository }}
-          else
             echo "Marking release as non-draft and prerelease for non-main branch (${{ github.ref_name }})."
             gh release edit ${{ needs.generate-release.outputs.version }} --draft=false --prerelease --repo ${{ github.repository }}
-          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
