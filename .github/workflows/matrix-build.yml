@@ -33,7 +33,7 @@ jobs:
 
       - name: Prepare version
         id: version
-        run: echo "versionr=$(date +v%d-%m-%Y)" >> $GITHUB_OUTPUT
+        run: echo "versionr=$(date +v%d-%m-%Y-%Hh-%Mm)" >> $GITHUB_OUTPUT
 
       - name: Generate build matrix from config.toml
         id: generate_matrix
