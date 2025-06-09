@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.versionr }}
+      matrix: ${{ steps.generate_matrix.outputs.matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
@@ -33,6 +34,25 @@ jobs:
       - name: Prepare version
         id: version
         run: echo "versionr=$(date +v%d-%m-%Y)" >> $GITHUB_OUTPUT
+
+      - name: Generate build matrix from config.toml
+        id: generate_matrix
+        run: |
+          # Install 'toml-cli' for parsing TOML
+          pip install toml-cli
+
+          # Get all section names where 'enabled = true'
+          MATRIX_IDS=$(toml get config.toml --toml-path '$.keys()' | \
+                       grep -E '^\[' | sed 's/\[\(.*\)\]/\1/' | \
+                       while read -r section; do
+                           enabled=$(toml get config.toml "$section.enabled" 2>/dev/null || echo "false")
+                           if [ "$enabled" = "true" ]; then
+                               echo "{\"id\": \"$section\"},"
+                           fi
+                       done | sed '$s/,$//') # Remove trailing comma from the last item
+
+          echo "Generated matrix IDs: [$MATRIX_IDS]"
+          echo "matrix=[$MATRIX_IDS]" >> "$GITHUB_OUTPUT"
 
       - name: Generate release
         run: |
@@ -64,44 +84,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - id: "YouTube"
-          - id: "Music"
-          - id: "YouTube-anddea"
-          - id: "Music-anddea"
-          # - id: "GooglePhotos"
-          - id: "Spotify"
-          #   - id: "YouTube-Extended"
-          #   - id: "Music-Extended"
-          #   - id: "Reddit-Extended"
-          #   - id: "Twitter"
-          #   - id: "Twitch"
-          #   - id: "TikTok"
-          #   - id: "Reddit"
-          #   - id: "Messenger"
-          #   - id: "Facebook"
-          #   - id: "Spotify-Lite"
-          #   - id: "Citra"
-          #   - id: "Backdrops"
-          #   - id: "WarnWetter"
-          #   - id: "Windyapp"
-          #   - id: "MyExpenses"
-          #   - id: "NyxMusicPlayer"
-          #   - id: "IconPackStudio"
-          #   - id: "TickTick"
-          #   - id: "Tasker"
-          #   - id: "Photomath"
-          #   - id: "Instagram-armeabi-v7a"
-          #   - id: "Instagram"
-          #   - id: "InShorts"
-          #   - id: "SyncForReddit"
-          #   - id: "InfinityForReddit"
-          #   - id: "VSCO"
-          #   - id: "Pixiv"
-          #   - id: "Trakt"
-          #   - id: "MemeGenerator"
-          #   - id: "Lightroom"
-          #   - id: "Tumblr"
+        include: ${{ fromJson(needs.generate-release.outputs.matrix) }}
 
     env:
       RELEASE_VERSION: ${{ needs.generate-release.outputs.version }}
@@ -119,6 +102,8 @@ jobs:
 
       - name: Generate ${{ matrix.id }} config
         run: |
+           # The gen_sep_config.sh script is assumed to handle the config generation correctly
+           # based on the matrix.id, which now corresponds directly to the section name.
            ./gen_sep_config.sh config.toml ${{ matrix.id }} sep_config.toml
            cat sep_config.toml
 
@@ -126,23 +111,31 @@ jobs:
         continue-on-error: true
         run: |
           count=0
-          if ! ./build.sh sep_config.toml; then
-            count=$((count+1))
-            if [ $count -lt 2 ]; then
-              rm -rf temp build
-              ./build.sh sep_config.toml
+          while [ $count -lt 3 ]; do # Increased attempts to 3 for robustness
+            if ./build.sh sep_config.toml; then
+              echo "Successfully built ${{ matrix.id }}"
+              break
             else
-              echo "Failed to build ${{ matrix.id }} after 3 attempts"
-              exit 1
+              count=$((count+1))
+              if [ $count -lt 3 ]; then
+                echo "Build failed for ${{ matrix.id }}. Retrying attempt $((count+1))/3..."
+                rm -rf temp build # Clean up before retry
+              else
+                echo "Failed to build ${{ matrix.id }} after 3 attempts"
+                exit 1
+              fi
             fi
-          fi
+          done
         env:
           NEXT_VER_CODE: ${{ env.RELEASE_VERSION }}
 
-      - name: Get output
+      - name: Get output (for YouTube only)
         id: get_output
         if: ${{ matrix.id == 'YouTube' }} && success()
         run: |
+          # This step extracts build.md content for the 'YouTube' module specifically.
+          # If you want to aggregate build.md for all modules, this logic needs to be moved
+          # to a later, separate job that collects outputs from all 'run' jobs.
           DELIM="$(openssl rand -hex 8)"
           echo "BUILD_LOG<<${DELIM}" >> "$GITHUB_OUTPUT"
           cat build.md >> "$GITHUB_OUTPUT"
@@ -150,17 +143,18 @@ jobs:
           cp -f build.md build.tmp
 
       - name: Upload modules to release
-        if: success()
+        if: success() # Only upload if the build step was successful for this matrix item
         run: |
           # get all apk and zip files in ./build/* directory, for each run gh release upload
           for file in $(find build -type f -name "*.apk" -o -name "*.zip"); do
-            gh release upload ${{ env.RELEASE_VERSION }} $file
+            echo "Uploading $file to release ${{ env.RELEASE_VERSION }}"
+            gh release upload ${{ env.RELEASE_VERSION }} "$file"
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-metadata:
-    needs: [generate-release, run]
+    needs: [generate-release, run] # Depends on 'run' to ensure all builds are complete
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -174,7 +168,8 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git fetch
-          git checkout update
+          # Ensure the 'update' branch exists and is checked out
+          git checkout update || git checkout -b update # Creates 'update' if it doesn't exist
           filename="build.md"
           /tmp/extras.sh "revanced/revanced-integrations" "revanced/revanced-patches" "revanced/revanced-cli" > $filename
           echo -e "\n" >> $filename
@@ -188,18 +183,20 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "Bump version ${{ needs.generate-release.outputs.version }}"
-            git push
+            git push origin update # Push to the 'update' branch
           fi
 
   release:
-    needs: [generate-release, run]
+    needs: [generate-release, run] # Depends on 'run' to ensure all builds are complete
     runs-on: ubuntu-latest
     steps:
       - name: Mark release non-draft
         run: |
-          if [[ ${{ github.ref_name }} == 'main' ]]; then
+          if [[ "${{ github.ref_name }}" == 'main' ]]; then
+            echo "Marking release as non-draft and latest for main branch."
             gh release edit ${{ needs.generate-release.outputs.version }} --draft=false --latest --repo ${{ github.repository }}
           else
+            echo "Marking release as non-draft and prerelease for non-main branch (${{ github.ref_name }})."
             gh release edit ${{ needs.generate-release.outputs.version }} --draft=false --prerelease --repo ${{ github.repository }}
           fi
         env:
