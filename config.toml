@@ -1,121 +1,179 @@
-enable-magisk-update = true # set this to false if you do not want to receive updates for the module in magisk app
-parallel-jobs = 4
+# General settings
+parallel-jobs = 1
+patches-version = "latest"
 
-# add 'enabled = false' for not patching a specific app or remove it from the config
-# see https://github.com/j-hc/revanced-magisk-module/blob/main/CONFIG.md for more detailed explanations
-
-# you can use rvmm-config-gen to generate a config
-
+# ======================================================================
+# YouTube
+# ======================================================================
 [YouTube]
-build-mode = "both"
-excluded-patches = ""
-included-patches = ""
+enabled = true
+app-name = "YouTube"
+build-mode = "apk"
+arch = "all"
 version = "auto"
-apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube"
+patches-source = "revanced/revanced-patches"
+cli-source = "j-hc/revanced-cli"
 uptodown-dlurl = "https://youtube.en.uptodown.com/android"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube"
 # archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
 
-[Music]
-build-mode = "both"
+[YouTube-inotia00]
+enabled = true
+app-name = "YouTube-inotia00"
+build-mode = "apk"
+arch = "all"
 version = "auto"
-arch = "both"
-apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
-uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
-# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
+patches-source = "inotia00/revanced-patches"
+cli-source = "j-hc/revanced-cli"
+uptodown-dlurl = "https://youtube.en.uptodown.com/android"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube"
+# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
 
 [YouTube-anddea]
 enabled = true
-app-name = "YouTube"
+app-name = "YouTube-anddea"
+build-mode = "apk"
+arch = "all"
 version = "auto"
 patches-source = "anddea/revanced-patches"
-integrations-source = "anddea/revanced-integrations"
-rv-brand = "anddea"
-build-mode = "both"
-apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube" 
+cli-source = "j-hc/revanced-cli"
 uptodown-dlurl = "https://youtube.en.uptodown.com/android"
-patcher-args = """\
-  -e 'Custom branding icon for YouTube' \
-  -OappIcon='revancify_blue' \
-  -e 'Custom Shorts action buttons' \
-  -OiconType='round' \
-  """
-# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
-
-[Music-anddea]
-enabled = true
-app-name = "Music"
-version = "auto"
-arch = "both"
-patches-source = "anddea/revanced-patches"
-integrations-source = "anddea/revanced-integrations"
-rv-brand = "anddea"
-build-mode = "both"
-apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
-uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
-patcher-args = "-e 'Custom branding icon for YouTube Music' -OappIcon='revancify_blue'"
-# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
-
-[GooglePhotos]
-build-mode = "both"
-arch = "both"
-version = "auto"
-apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/photos/"
-uptodown-dlurl = "https://google-photos.en.uptodown.com/android"
-
-[Spotify]
-patches-source = "anddea/revanced-patches"
-integrations-source = "anddea/revanced-integrations"
-rv-brand = "anddea"
-build-mode = "both"
-uptodown-dlurl = "https://spotify.en.uptodown.com/android"
-version = "9.0.54.74"
-excluded-patches = "'Lyrics search'"
-
-# dont build on gh actions (https://github.com/j-hc/revanced-magisk-module/issues/554)
-[Music-Extended]
-enabled = false
-app-name = "Music"
-patches-source = "inotia00/revanced-patches"
-cli-source = "inotia00/revanced-cli"
-rv-brand = "ReVanced Extended"
-build-mode = "both"
-arch = "both"
-apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
-# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
-
-[YouTube-Extended]
-enabled = false
-app-name = "YouTube"
-patches-source = "inotia00/revanced-patches"
-cli-source = "inotia00/revanced-cli"
-rv-brand = "ReVanced Extended"
-build-mode = "both"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube"
 # archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
 
-[Twitch]
-enabled = false
-apkmirror-dlurl = "https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/"
-uptodown-dlurl = "https://twitch.en.uptodown.com/android"
-# archive-dlurl = "https://archive.org/download/jhc-apks/apks/tv.twitch.android.app"
+# ======================================================================
+# YouTube Music
+# ======================================================================
 
-[Twitter]
-enabled = false
-apkmirror-dlurl = "https://www.apkmirror.com/apk/x-corp/twitter"
+[Music]
+enabled = true
+app-name = "Music"
 build-mode = "apk"
-dpi = "120-640dpi"
-# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.twitter.android"
-
-[TikTok]
-enabled = false
-# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.zhiliaoapp.musically"
-included-patches = "'SIM spoof'"
-
-[Messenger]
-enabled = false
-apkmirror-dlurl = "https://www.apkmirror.com/apk/facebook-2/messenger/"
 arch = "arm64-v8a"
+version = "auto"
+patches-source = "revanced/revanced-patches"
+cli-source = "j-hc/revanced-cli"
+uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
+# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
 
-[IconPackStudio]
-enabled = false
-apkmirror-dlurl = "https://www.apkmirror.com/apk/smart-launcher-team/icon-pack-studio/"
+[Music-inotia00]
+enabled = true
+app-name = "Music-inotia00"
+build-mode = "apk"
+arch = "arm64-v8a"
+version = "auto"
+patches-source = "inotia00/revanced-patches"
+cli-source = "j-hc/revanced-cli"
+uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
+# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
+
+[Music-anddea]
+enabled = true
+app-name = "Music-anddea"
+build-mode = "apk"
+arch = "arm64-v8a"
+version = "auto"
+patches-source = "anddea/revanced-patches"
+cli-source = "j-hc/revanced-cli"
+uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
+# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
+
+# ======================================================================
+# Reddit
+# ======================================================================
+
+[Reddit]
+enabled = true
+app-name = "Reddit"
+build-mode = "apk"
+version = "auto"
+patches-source = "revanced/revanced-patches"
+cli-source = "j-hc/revanced-cli"
+uptodown-dlurl = "https://reddit-official-app.en.uptodown.com/android"
+# apkmirror-dlurl = "https://www.apkmirror.com/apk/redditinc/reddit"
+# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.reddit.frontpage"
+
+[Reddit-inotia00]
+enabled = true
+app-name = "Reddit-inotia00"
+build-mode = "apk"
+arch = "arm64-v8a"
+version = "auto"
+apkmirror-dpi = "120-640dpi"
+patches-source = "inotia00/revanced-patches"
+cli-source = "j-hc/revanced-cli"
+uptodown-dlurl = "https://reddit-official-app.en.uptodown.com/android"
+# apkmirror-dlurl = "https://www.apkmirror.com/apk/redditinc/reddit"
+# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.reddit.frontpage"
+
+[Reddit-anddea]
+enabled = true
+app-name = "Reddit-anddea"
+build-mode = "apk"
+arch = "arm64-v8a"
+version = "auto"
+patches-source = "anddea/revanced-patches"
+cli-source = "j-hc/revanced-cli"
+uptodown-dlurl = "https://reddit-official-app.en.uptodown.com/android"
+# apkmirror-dlurl = "https://www.apkmirror.com/apk/redditinc/reddit"
+# archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.reddit.frontpage"
+
+
+# ======================================================================
+# Spotify
+# ======================================================================
+
+[Spotify]
+enabled = true
+app-name = "Spotify"
+build-mode = "apk"
+# arch = "arm64-v8a"
+# apkmirror-dpi = "480dpi"
+version = "auto"
+patches-source = "revanced/revanced-patches"
+cli-source = "j-hc/revanced-cli"
+uptodown-dlurl = "https://spotify.en.uptodown.com/android"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/spotify-ab/spotify-music-podcasts"
+archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.spotify.music"
+
+[Spotify-anddea]
+enabled = true
+app-name = "Spotify-anddea"
+build-mode = "apk"
+# arch = "arm64-v8a"
+# apkmirror-dpi = "480dpi"
+version = "auto"
+patches-source = "anddea/revanced-patches"
+cli-source = "j-hc/revanced-cli"
+uptodown-dlurl = "https://spotify.en.uptodown.com/android"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/spotify-ab/spotify-music-podcasts"
+archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.spotify.music"
+
+
+# ======================================================================
+# Backdrops - Wallpapers
+# ======================================================================
+
+[Backdrops]
+version = "5.1.8"
+arch = "all"
+apkmirror-dpi = "120-640dpi"
+build-mode = "apk"
+cli-source = "j-hc/revanced-cli"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/backdrops/backdrops-wallpapers"
+
+# ======================================================================
+# Google News
+# ======================================================================
+
+[Google-News]
+enabled = true
+app-name = "google-news"
+version = "auto"
+build-mode = "apk"
+patches-source = "revanced/revanced-patches"
+cli-source = "j-hc/revanced-cli"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/google-news/"
